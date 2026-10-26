@@ -47,7 +47,8 @@ sur l'appareil.
 - Un **Apple ID gratuit suffit** pour installer sur votre propre appareil : l'application ainsi
   signée **expire après 7 jours**, il suffit de la réinstaller. Le compte Apple Developer payant
   (99 $/an) n'est nécessaire que pour TestFlight et l'App Store.
-- **XcodeGen** : `brew install xcodegen`
+- **XcodeGen** : `brew install xcodegen` s'il y a Homebrew — sinon compilez-le depuis les
+  sources, voie vérifiée compatible avec Xcode 15.2 (voir ci-dessous).
 - **Docker** (facultatif, sur le PC) pour exécuter le noyau de tests sans Mac.
 
 ### Contrôle des prérequis — à lancer avant tout le reste (30 secondes)
@@ -69,6 +70,28 @@ fonctionneront pas. Corrigez-le vous-même (la commande demande votre mot de pas
 ```bash
 sudo xcode-select -s /Applications/Xcode.app
 ```
+
+### Installer XcodeGen sans Homebrew (voie vérifiée)
+
+XcodeGen 2.46.0 déclare `swift-tools-version:5.9` et `platforms: [.macOS(.v11)]` : il se compile
+donc avec **Xcode 15.2 sous macOS 13**. C'est la voie à utiliser si `brew` est absent.
+
+```bash
+cd ~
+git clone --depth 1 --branch 2.46.0 https://github.com/yonaskolb/XcodeGen.git XcodeGen
+cd XcodeGen && swift build -c release      # quelques minutes, compile depuis les sources
+```
+
+Puis, **depuis le dossier du projet RunSync** :
+
+```bash
+cd /chemin/vers/RunSync
+~/XcodeGen/.build/release/xcodegen generate
+ls -d RunSync.xcodeproj                    # doit maintenant exister
+```
+
+Aucune installation globale, aucun `sudo`. Pas besoin de `--spec` tant que la commande est
+lancée depuis le dossier qui contient `project.yml`.
 
 `RunSync.xcodeproj` n'est pas versionné : [project.yml](../project.yml) est la source de
 vérité et la génération est déterministe (aucun conflit de merge dans le `pbxproj`).
