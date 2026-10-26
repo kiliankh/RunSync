@@ -16,6 +16,7 @@ et testée sur appareil.
 | Élément | Valeur |
 | --- | --- |
 | Système de développement | Windows (aucun macOS, aucun Xcode, aucun SDK Apple) |
+| Mac de l'utilisateur | macOS **13.7.8** (x86_64), **Xcode 15.2**, Swift 5.9.2 |
 | Noyau portable (Domain, Simulation, Persistence) | **réellement compilé et testé** dans un conteneur Docker `swift:6.0` (Linux) |
 | Couche application + adaptateurs iOS (AVFAudio, CoreMotion, MediaPlayer, SwiftUI) | **parse syntaxique OK**, mais **jamais compilée** — impossible sans macOS |
 | Exécution sur iPhone | **NON EXÉCUTÉE** |
@@ -154,7 +155,17 @@ pic à 0,900 de la pleine échelle.
 6. **`StatusBanner.tint` n'est pas optionnel** : `tint: nil` aurait échoué à la compilation.
    Repéré en relisant le composant, corrigé dans `ActiveRunView`.
 
-7. **`Theme.swift` utilisait `DataQuality` sans `import RunSyncDomain`.** `Theme.color(for:)`
+7. **Le plancher de déploiement du paquet empêchait toute exécution sur macOS 13.**
+   `Package.swift` déclarait `.macOS(.v14)` alors que le Mac de l'utilisateur est en 13.7.8 :
+   `swift build` et `swift test` **réussissaient** (les binaires se construisaient), mais rien ne
+   pouvait se lancer — `dyld: Symbol not found: _swift_getTypeByMangledNameInContext2 … built for
+   macOS 14.0 which is newer than running OS`. Le plus trompeur : `swift test` affichait `Build
+   complete!` et **aucun** test, sans message d'erreur, ce qui ressemblait à un problème de
+   harnais. Diagnostiqué grâce à `swift run runsync-demo`, corrigé en `.macOS(.v13)`, puis
+   revérifié : 108 tests, 0 échec. **Aucun test n'avait jamais été exécuté sur le Mac avant
+   cette correction.**
+
+8. **`Theme.swift` utilisait `DataQuality` sans `import RunSyncDomain`.** `Theme.color(for:)`
    prend ce type en paramètre ; il est déclaré dans le paquet `RunSyncDomain`, alors que le
    fichier n'importait que SwiftUI. La cible applicative n'aurait donc pas compilé sur un Mac.
    Trouvé par le contrôle mécanique des imports inter-modules de **toute** la couche app, puis

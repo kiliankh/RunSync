@@ -16,7 +16,14 @@ let package = Package(
     platforms: [
         // Cible provisoire, à réviser (§15) selon les API réellement retenues.
         .iOS(.v17),
-        .macOS(.v14)
+        // macOS 13, délibérément, et non 14 : ce plancher ne décrit pas seulement la
+        // disponibilité des API, il fixe la version **minimale d'exécution** des
+        // binaires produits (outil de démonstration `runsync-demo` et bundle de
+        // tests). Déclaré en 14, `swift build` réussissait encore sur macOS 13 mais
+        // plus rien ne s'exécutait : « Symbol not found … built for macOS 14.0 which
+        // is newer than running OS », et `swift test` ne lançait silencieusement
+        // aucun test. Constaté sur macOS 13.7.8 + Xcode 15.2.
+        .macOS(.v13)
     ],
     products: [
         .library(name: "RunSyncDomain", targets: ["RunSyncDomain"]),

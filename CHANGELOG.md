@@ -33,12 +33,21 @@ Versionnement sémantique une fois l'application distribuée.
   (cadence réelle, clics qui accélèrent, écouteurs débranchés, appel entrant, écran verrouillé).
   Il s'ouvre désormais sur un **contrôle des prérequis** à lancer avant tout (`sw_vers`,
   `xcodebuild -version`, `xcode-select -p`, `brew`, `xcodegen`) et sur la route « clone Xcode »
-  avec ses deux pièges ; le plancher de version macOS y est explicité. Il annonçait d'abord à
-  tort que macOS 14 était exigé à cause du `.macOS(.v14)` de `Package.swift` : un essai réel
-  (macOS 13.7.8 + Xcode 15.2) a montré que `swift build` et `swift test` passent.
+  avec ses deux pièges ; le plancher de version macOS y est explicité, ainsi que le piège de
+  casse `~/XcodeGen` / `~/xcodegen` sur un système de fichiers insensible à la casse.
 - `Docs/AUDIO_ENGINE.md` réécrit : moteur tel qu'implémenté, chaîne de contrôle et mesures
   encore manquantes.
 - Tests : **108 cas** au total (16 nouveaux sur la rampe de vitesse).
+
+### Corrigé
+
+- **Plancher de déploiement du paquet abaissé de `.macOS(.v14)` à `.macOS(.v13)`.** Sur
+  macOS 13.7.8 + Xcode 15.2, tout se compilait mais **rien ne s'exécutait** : `swift run
+  runsync-demo` échouait sur `Symbol not found: _swift_getTypeByMangledNameInContext2 … built
+  for macOS 14.0 which is newer than running OS`, et `swift test` s'arrêtait à `Build
+  complete!` en ne lançant **aucun** test, sans message d'erreur. Un plancher de déploiement
+  fixe la version minimale d'exécution des binaires produits, pas seulement la disponibilité
+  des API. Après correction : 108 tests, 0 échec (revérifié en conteneur).
 
 ### Modifié
 

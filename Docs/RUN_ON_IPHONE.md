@@ -37,10 +37,13 @@ sur l'appareil.
 
 ## 2. Prérequis
 
-- Un **Mac sous macOS 13 (Ventura) ou plus** : **vérifié** sur macOS 13.7.8 avec Xcode 15.2,
-  où `swift build` et `swift test` passent. Le `.macOS(.v14)` déclaré dans `Package.swift`
-  restreint la vérification de disponibilité des API ; **il n'empêche pas la construction**. La
-  crainte inverse avait été écrite ici avant d'être démentie par un essai réel.
+- Un **Mac sous macOS 13 (Ventura) ou plus** : `Package.swift` déclare `.macOS(.v13)`, ce qui
+  couvre macOS 13.7 comme macOS 14 et plus. Ce plancher ne décrit pas seulement la disponibilité
+  des API : il fixe la version **minimale d'exécution** des binaires produits (démonstration et
+  bundle de tests). Déclaré en 14, tout se compilait encore sur macOS 13 mais plus rien ne
+  s'exécutait — `Symbol not found … built for macOS 14.0 which is newer than running OS` — et
+  `swift test` s'arrêtait à `Build complete!` **sans lancer un seul test**. Constaté sur
+  macOS 13.7.8 + Xcode 15.2.
 - **Xcode 15 ou plus** (App Store, ou <https://developer.apple.com/xcode/>) : lancez-le une
   première fois et laissez-le installer ses composants.
 - Un **iPhone sous iOS 17 ou plus**, avec son câble.
@@ -106,6 +109,11 @@ ls -d RunSync.xcodeproj          # doit maintenant exister
 Pas besoin de `--spec` tant que la commande est lancée depuis le dossier qui contient
 `project.yml`. Conservez le dossier `~/xcodegen` en l'état : le binaire y trouve ses
 préréglages de construction dans `share/`.
+
+> **Piège de casse.** Sur macOS, le système de fichiers est **insensible à la casse** par
+> défaut : `~/XcodeGen` et `~/xcodegen` désignent le **même dossier**. Un `rm -rf ~/XcodeGen`
+> destiné à nettoyer un ancien clone efface donc l'installation fraîchement décompressée. C'est
+> arrivé une fois ; le binaire fonctionnait (`--version` répondait) puis a disparu.
 
 `RunSync.xcodeproj` n'est pas versionné : [project.yml](../project.yml) est la source de
 vérité et la génération est déterministe (aucun conflit de merge dans le `pbxproj`).
@@ -328,6 +336,8 @@ Pistes les plus probables, par ordre de vraisemblance :
 | `'shouldResume' is deprecated` | évolution du SDK | avertissement seul ; à moderniser selon la recommandation Apple |
 | erreur sur `CMErrorMotionActivityNotAuthorized` | type d'import Core Motion selon le SDK | comparer via `NSNumber`/codes numériques |
 | `AVAudioSession` / `MediaPlayer` introuvable | framework non lié | XcodeGen les lie automatiquement via l'import ; sinon, les ajouter dans *Build Phases* |
+| `dyld: Symbol not found: _swift_getTypeByMangledNameInContext2` puis `built for macOS 14.0 which is newer than running OS` | le plancher de déploiement du paquet dépasse la version du système : le binaire se construit puis refuse de se lancer | aligner `platforms:` de `Package.swift` sur la version réellement utilisée — c'est un défaut **déjà corrigé** en `.macOS(.v13)` |
+| `swift test` affiche `Build complete!` et **aucun** test, sans message d'erreur | même cause : le bundle de test ne peut pas être exécuté, et SwiftPM le signale à peine | vérifier `platforms:` dans `Package.swift` ; `swift test --verbose` montre la cible réellement visée (`-target x86_64-apple-macosx14.0`) |
 
 ---
 
