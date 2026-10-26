@@ -37,10 +37,10 @@ sur l'appareil.
 
 ## 2. Prérequis
 
-- Un **Mac sous macOS 14 (Sonoma) ou plus** : `Package.swift` déclare `.macOS(.v14)` pour le
-  noyau de tests, et SwiftPM refuse de configurer un paquet dont le plancher est plus haut que
-  le système (« requires minimum platform version 14.0 »). L'application iOS, elle, n'est pas
-  concernée (cible iOS 17). Sur macOS 13.5–13.6, dites-le-moi avant de commencer.
+- Un **Mac sous macOS 13 (Ventura) ou plus** : **vérifié** sur macOS 13.7.8 avec Xcode 15.2,
+  où `swift build` et `swift test` passent. Le `.macOS(.v14)` déclaré dans `Package.swift`
+  restreint la vérification de disponibilité des API ; **il n'empêche pas la construction**. La
+  crainte inverse avait été écrite ici avant d'être démentie par un essai réel.
 - **Xcode 15 ou plus** (App Store, ou <https://developer.apple.com/xcode/>) : lancez-le une
   première fois et laissez-le installer ses composants.
 - Un **iPhone sous iOS 17 ou plus**, avec son câble.
@@ -55,7 +55,7 @@ sur l'appareil.
 Dans le Terminal du Mac :
 
 ```bash
-sw_vers                 # ProductVersion : 14.x ou plus
+sw_vers                 # ProductVersion : 13.x suffit (vérifié sur 13.7.8 + Xcode 15.2)
 xcodebuild -version     # Xcode 15.x ou plus
 xcode-select -p         # doit pointer DANS /Applications/Xcode.app/…
 brew --version          # absent : https://brew.sh

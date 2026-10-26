@@ -33,7 +33,9 @@ Versionnement sémantique une fois l'application distribuée.
   (cadence réelle, clics qui accélèrent, écouteurs débranchés, appel entrant, écran verrouillé).
   Il s'ouvre désormais sur un **contrôle des prérequis** à lancer avant tout (`sw_vers`,
   `xcodebuild -version`, `xcode-select -p`, `brew`, `xcodegen`) et sur la route « clone Xcode »
-  avec ses deux pièges ; le plancher **macOS 14** du noyau de tests y est explicité.
+  avec ses deux pièges ; le plancher de version macOS y est explicité. Il annonçait d'abord à
+  tort que macOS 14 était exigé à cause du `.macOS(.v14)` de `Package.swift` : un essai réel
+  (macOS 13.7.8 + Xcode 15.2) a montré que `swift build` et `swift test` passent.
 - `Docs/AUDIO_ENGINE.md` réécrit : moteur tel qu'implémenté, chaîne de contrôle et mesures
   encore manquantes.
 - Tests : **108 cas** au total (16 nouveaux sur la rampe de vitesse).
