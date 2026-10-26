@@ -71,8 +71,10 @@ xcodegen generate
 open RunSync.xcodeproj
 # ou, en ligne de commande :
 xcrun simctl list devices available
+# Le nom du simulateur dépend de l'Xcode installé : « iPhone 16 » avec Xcode 16,
+# « iPhone 15 » avec Xcode 15 (iOS 17.2). Utilisez celui que la commande ci-dessus liste.
 xcodebuild -project RunSync.xcodeproj -scheme RunSync \
-  -destination 'platform=iOS Simulator,name=iPhone 16' build test
+  -destination 'platform=iOS Simulator,name=iPhone 15' build test
 ```
 
 `RunSync.xcodeproj` n'est pas versionné : `project.yml` est la source de vérité.

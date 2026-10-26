@@ -196,8 +196,15 @@ autre chemin : `rm -rf .build` puis relancez.)*
 xcodegen generate
 xcrun simctl list devices available        # choisir un simulateur réellement installé
 xcodebuild -project RunSync.xcodeproj -scheme RunSync \
-  -destination 'platform=iOS Simulator,name=iPhone 16' build
+  -destination 'platform=iOS Simulator,name=iPhone 15' build
 ```
+
+> **Le nom du simulateur dépend de l'Xcode installé.** « iPhone 16 » suppose Xcode 16 ; avec
+> **Xcode 15.2**, les simulateurs disponibles sont ceux d'iOS 17.2 et l'appareil s'appelle
+> **iPhone 15**. Recopiez un nom exactement tel que `xcrun simctl list devices available`
+> l'affiche — un nom inventé fait échouer `xcodebuild` sur
+> `Unable to find a destination matching the provided destination specifier`. Dans Xcode, la
+> question ne se pose pas : le simulateur se choisit dans le menu déroulant à côté du schéma.
 
 **C'est le vrai risque de cette étape.** Aucune ligne de `RunSync/App/`, `RunSync/Features/`,
 `RunSync/DesignSystem/`, `RunSync/Infrastructure/Audio/` et `RunSync/Infrastructure/Motion/`
