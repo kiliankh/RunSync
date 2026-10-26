@@ -190,10 +190,24 @@ autre chemin : `rm -rf .build` puis relancez.)*
 
 ---
 
-## 5. Étape 2 — générer le projet et compiler pour le simulateur
+## 5. Étape 2 — engendrer le projet et compiler
 
 ```bash
-xcodegen generate
+xcodegen generate                          # obligatoire dans tous les cas
+```
+
+### Le simulateur est facultatif
+
+Un runtime de simulateur ne sert qu'à faire tourner l'application **sur le Mac** : itération
+rapide et *Previews* SwiftUI. Compiler pour un iPhone branché produit du code pour l'appareil
+(`arm64`) et **ne demande aucun runtime de simulateur**. Si la place manque sur le Mac,
+**sautez directement au §6** : c'est de toute façon le seul chemin qui exerce réellement le
+capteur et la musique. Ce que vous perdez : les *Previews*, et le fait de pouvoir tester sans
+câble.
+
+Si vous gardez le simulateur, la compilation s'y fait ainsi :
+
+```bash
 xcrun simctl list devices available        # choisir un simulateur réellement installé
 xcodebuild -project RunSync.xcodeproj -scheme RunSync \
   -destination 'platform=iOS Simulator,name=iPhone 15' build
@@ -214,14 +228,19 @@ n'a jamais vu un compilateur : le PC de développement n'a ni macOS ni les frame
 Les erreurs résiduelles seront donc des erreurs de signature d'API Apple ou d'isolation
 d'acteur — voir §9.
 
-Ensuite, ⌘R dans Xcode : l'application tourne dans le simulateur. Vous y verrez toute
-l'interface, la cadence **simulée** et le refus honnête du capteur. Le son, lui, marche aussi
-dans le simulateur (un morceau importé s'y joue), ce qui permet de vérifier la chaîne audio
-avant même de brancher l'iPhone.
+Ensuite, ⌘R dans Xcode : l'application s'installe et démarre. Vous verrez toute l'interface, la
+cadence **réelle** si vous êtes sur l'iPhone (le simulateur, lui, ne fournit aucune cadence :
+l'application le dit et bascule sur le scénario simulé), et la chaîne audio se vérifie dans les
+deux cas — le morceau de test s'y joue et l'accélération des clics s'y entend.
 
 ---
 
 ## 6. Étape 3 — installer sur l'iPhone
+
+> **Aucun simulateur n'est requis.** Si Xcode propose de télécharger un runtime de simulateur,
+> refusez : c'est plusieurs gigaoctets, et l'installation sur l'appareil n'en a pas besoin.
+> Une compilation pour l'appareil n'ajoute que quelques centaines de mégaoctets à `DerivedData`,
+> nettoyables par *Product → Clean Build Folder* (⇧⌘K).
 
 1. **Compte** : Xcode → *Settings…* → *Accounts* → ajoutez votre Apple ID.
 2. **Signature** : cible **RunSync** → *Signing & Capabilities* : cochez *Automatically manage
