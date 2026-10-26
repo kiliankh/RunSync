@@ -68,10 +68,19 @@ Quatre routes, de la plus simple à la plus automatisable :
    ```
 
    Plus tard, `git remote set-url origin <URL du dépôt>` puis `git push -u origin main` depuis
-   le Mac suffit à le rattacher à GitHub.
+   le Mac suffit à le rattacher à GitHub. Pour rafraîchir l'archive après de nouveaux commits :
+   `git bundle create RunSync-phase1.bundle --all` (l'archive est une photo du dépôt, elle ne
+   se met pas à jour toute seule).
 2. **Par Git, une fois le dépôt GitHub créé** — créez un dépôt **vide** (sans README, sans
    `.gitignore`, sans licence) nommé `RunSync` sur <https://github.com/new>, puis depuis le PC :
    `git push -u origin main`. Avantage : tous les aller-retours PC → Mac deviennent `git pull`.
+
+   Sur le Mac, Xcode sait cloner lui-même : fenêtre d'accueil → **Clone Git Repository** →
+   collez l'URL. **Mais deux pièges** : `RunSync.xcodeproj` n'est **pas** versionné (il est
+   *engendré* depuis `project.yml`), donc Xcode clonera le dépôt sans trouver de projet à
+   ouvrir — lancez `xcodegen generate`, puis ouvrez le `.xcodeproj` obtenu. Et si vous ouvrez
+   plutôt `Package.swift`, Xcode ne construira que le noyau portable : sans cible applicative,
+   sans Info.plist, sans permission — aucune application iOS n'en sortira.
 3. **Copie directe** — copiez le dossier du projet (OneDrive, clé USB, partage réseau).
    Inutile de copier `.build/` (cache de compilation du PC, inutilisable sur Mac).
 4. **Copie ciblée** — si vous ne voulez transférer que le minimum : `RunSync/`, `project.yml`,
