@@ -42,3 +42,5 @@ RunSync/Resources/ImportedAudio/
 
 # --- Divers ---
 *.log
+# Archive de transfert vers le Mac (artefact jetable, jamais versionné).
+*.bundle

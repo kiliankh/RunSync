@@ -53,15 +53,28 @@ vérité et la génération est déterministe (aucun conflit de merge dans le `p
 
 ## 3. Passer du PC au Mac
 
-Le dépôt local **n'a encore aucun commit ni remote**. Trois routes, de la plus simple à la
-plus automatisable :
+Le dépôt local contient un commit initial (`f4138e5`, 89 fichiers) et un remote `origin`
+déjà configuré vers `https://github.com/kiliankh/RunSync.git`. Ce dépôt GitHub **n'existe pas
+encore** : tant qu'il n'est pas créé, un `git push` répond `remote: Repository not found`.
+Quatre routes, de la plus simple à la plus automatisable :
 
-1. **Copie directe** — copiez le dossier du projet (OneDrive, clé USB, partage réseau).
-   Inutile de copier `.build/` (cache de compilation du PC, inutilisable sur Mac) ni `.git/`.
-2. **Par Git (recommandé si vous voulez suivre les changements)** — sur le PC :
-   `git add -A && git commit -m "…"` puis pousser vers un dépôt privé, et `git clone` sur le
-   Mac. Avantage : tous les aller-retours PC → Mac deviennent `git pull`.
-3. **Copie ciblée** — si vous ne voulez transférer que le minimum : `RunSync/`, `project.yml`,
+1. **Bundle Git (recommandé : un seul fichier)** — `RunSync-phase1.bundle` (1,9 Mio, historique
+   complet vérifié) est prêt à la racine du projet. Copiez-le sur le Mac, puis :
+
+   ```bash
+   git clone RunSync-phase1.bundle RunSync
+   cd RunSync
+   git log --oneline          # doit afficher f4138e5
+   ```
+
+   Plus tard, `git remote set-url origin <URL du dépôt>` puis `git push -u origin main` depuis
+   le Mac suffit à le rattacher à GitHub.
+2. **Par Git, une fois le dépôt GitHub créé** — créez un dépôt **vide** (sans README, sans
+   `.gitignore`, sans licence) nommé `RunSync` sur <https://github.com/new>, puis depuis le PC :
+   `git push -u origin main`. Avantage : tous les aller-retours PC → Mac deviennent `git pull`.
+3. **Copie directe** — copiez le dossier du projet (OneDrive, clé USB, partage réseau).
+   Inutile de copier `.build/` (cache de compilation du PC, inutilisable sur Mac).
+4. **Copie ciblée** — si vous ne voulez transférer que le minimum : `RunSync/`, `project.yml`,
    `Package.swift`, `Docs/`, `Tools/`. Le reste n'est pas nécessaire au build.
 
 > Le morceau de test `RunSync/Resources/TestAudio/runsync-test-clicks-168bpm.wav` (2,5 Mio) doit
