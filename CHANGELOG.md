@@ -54,6 +54,13 @@ Versionnement sémantique une fois l'application distribuée.
 - `swift test` : 108 tests, 0 échec, code de sortie 0 ; `swift build` sans avertissement.
 - Tempo du morceau de test **mesuré** sur le fichier produit : 84 attaques, 168,0000 BPM.
 - `swiftc -parse` : syntaxe de la couche app et des adaptateurs valide.
+- **Câblage app ↔ paquet contrôlé mécaniquement** : tous les chemins de `project.yml`
+  existent, 62 fichiers `.swift` dont **0 orphelin** (aucun fichier hors de tout target),
+  imports inter-modules complets, noyau portable sans framework Apple.
+- **Archive de transfert vérifiée par son usage réel** : `git bundle create … --all`, puis
+  **clone de l'archive** et `swift test` dans ce clone → 108 tests, 0 échec. C'est le trajet
+  exact que suivra le Mac.
+- Dépôt initialisé et commité sur `main` (`*.bundle` ignoré : artefact de transfert jetable).
 - **NON VÉRIFIÉ** : aucune compilation iOS, **aucun son produit**, **aucune cadence réelle
   lue**, aucun artefact audio écouté, aucune mesure de batterie ou de latence.
 
@@ -65,6 +72,9 @@ Versionnement sémantique une fois l'application distribuée.
 3. `AudioEventReporting.events()` était synchrone, donc incompatible avec un moteur `actor`.
 4. Deux attentes de test inexactes (repli d'une consigne non finie ; comparaison de commandes
    consécutives) corrigées sans affaiblir aucune assertion.
+5. `Theme.swift` utilisait `DataQuality` (déclaré dans le paquet `RunSyncDomain`) sans
+   `import RunSyncDomain` : la cible applicative n'aurait pas compilé. Trouvé par le contrôle
+   mécanique des imports de la couche app, corrigé.
 
 ## [0.2.1] — 2026-10-26 — Guide d'installation sur iPhone (documentation seule)
 

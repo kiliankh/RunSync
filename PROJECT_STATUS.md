@@ -21,7 +21,9 @@ et testée sur appareil.
 | Exécution sur iPhone | **NON EXÉCUTÉE** |
 | Lecture audio réellement entendue | **NON** — aucune ligne de ce projet n'a encore produit un son |
 | Cadence réelle réellement mesurée | **NON** — le capteur n'a jamais été interrogé |
-| Commits créés | aucun (dépôt initialisé sur `main`, tous les fichiers non suivis) |
+| Câblage app ↔ paquet (chemins de `project.yml`, imports inter-modules, fichiers orphelins) | **vérifié mécaniquement** : 62 fichiers `.swift`, 0 orphelin, 0 import manquant, noyau portable sans framework Apple |
+| Archive de transfert `RunSync-phase1.bundle` | **vérifiée** : clone réel de l'archive, puis `swift test` dans le clone → 108 tests, 0 échec |
+| Commits créés | 4 sur `main` (jusqu'à `ae42979`), arbre de travail propre. **Push impossible :** le dépôt distant `https://github.com/kiliankh/RunSync.git` n'existe pas encore (`remote: Repository not found`) |
 
 Aucune ligne ci-dessous ne doit être lue comme « testé sur iPhone » : rien ne l'a été.
 
@@ -150,6 +152,13 @@ pic à 0,900 de la pleine échelle.
    Tests corrigés, aucun affaibli.
 6. **`StatusBanner.tint` n'est pas optionnel** : `tint: nil` aurait échoué à la compilation.
    Repéré en relisant le composant, corrigé dans `ActiveRunView`.
+
+7. **`Theme.swift` utilisait `DataQuality` sans `import RunSyncDomain`.** `Theme.color(for:)`
+   prend ce type en paramètre ; il est déclaré dans le paquet `RunSyncDomain`, alors que le
+   fichier n'importait que SwiftUI. La cible applicative n'aurait donc pas compilé sur un Mac.
+   Trouvé par le contrôle mécanique des imports inter-modules de **toute** la couche app, puis
+   corrigé (0 import manquant restant). C'est exactement la classe d'erreur invisible ici :
+   aucun compilateur iOS sur cette machine.
 
 Aucun test n'a été supprimé ni affaibli pour passer.
 
