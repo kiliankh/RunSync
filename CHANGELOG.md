@@ -31,6 +31,9 @@ Versionnement sémantique une fois l'application distribuée.
   la course sans audio est explicitement choisie.
 - `Docs/RUN_ON_IPHONE.md` réécrit : procédure PC → Mac → iPhone, puis recette d'appareil
   (cadence réelle, clics qui accélèrent, écouteurs débranchés, appel entrant, écran verrouillé).
+  Il s'ouvre désormais sur un **contrôle des prérequis** à lancer avant tout (`sw_vers`,
+  `xcodebuild -version`, `xcode-select -p`, `brew`, `xcodegen`) et sur la route « clone Xcode »
+  avec ses deux pièges ; le plancher **macOS 14** du noyau de tests y est explicité.
 - `Docs/AUDIO_ENGINE.md` réécrit : moteur tel qu'implémenté, chaîne de contrôle et mesures
   encore manquantes.
 - Tests : **108 cas** au total (16 nouveaux sur la rampe de vitesse).

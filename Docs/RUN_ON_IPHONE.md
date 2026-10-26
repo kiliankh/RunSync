@@ -37,7 +37,11 @@ sur l'appareil.
 
 ## 2. Prérequis
 
-- Un **Mac** avec Xcode (App Store, ou <https://developer.apple.com/xcode/>) : lancez-le une
+- Un **Mac sous macOS 14 (Sonoma) ou plus** : `Package.swift` déclare `.macOS(.v14)` pour le
+  noyau de tests, et SwiftPM refuse de configurer un paquet dont le plancher est plus haut que
+  le système (« requires minimum platform version 14.0 »). L'application iOS, elle, n'est pas
+  concernée (cible iOS 17). Sur macOS 13.5–13.6, dites-le-moi avant de commencer.
+- **Xcode 15 ou plus** (App Store, ou <https://developer.apple.com/xcode/>) : lancez-le une
   première fois et laissez-le installer ses composants.
 - Un **iPhone sous iOS 17 ou plus**, avec son câble.
 - Un **Apple ID gratuit suffit** pour installer sur votre propre appareil : l'application ainsi
@@ -45,6 +49,26 @@ sur l'appareil.
   (99 $/an) n'est nécessaire que pour TestFlight et l'App Store.
 - **XcodeGen** : `brew install xcodegen`
 - **Docker** (facultatif, sur le PC) pour exécuter le noyau de tests sans Mac.
+
+### Contrôle des prérequis — à lancer avant tout le reste (30 secondes)
+
+Dans le Terminal du Mac :
+
+```bash
+sw_vers                 # ProductVersion : 14.x ou plus
+xcodebuild -version     # Xcode 15.x ou plus
+xcode-select -p         # doit pointer DANS /Applications/Xcode.app/…
+brew --version          # absent : https://brew.sh
+xcodegen --version      # absent : brew install xcodegen
+```
+
+Si `xcode-select -p` renvoie `/Library/Developer/CommandLineTools`, c'est le jeu d'outils en
+ligne de commande qui est actif, pas Xcode complet : `xcodegen` et le simulateur ne
+fonctionneront pas. Corrigez-le vous-même (la commande demande votre mot de passe) :
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app
+```
 
 `RunSync.xcodeproj` n'est pas versionné : [project.yml](../project.yml) est la source de
 vérité et la génération est déterministe (aucun conflit de merge dans le `pbxproj`).
