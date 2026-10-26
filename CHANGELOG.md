@@ -63,7 +63,8 @@ Versionnement sémantique une fois l'application distribuée.
 - **Archive de transfert vérifiée par son usage réel** : `git bundle create … --all`, puis
   **clone de l'archive** et `swift test` dans ce clone → 108 tests, 0 échec. C'est le trajet
   exact que suivra le Mac.
-- Dépôt initialisé et commité sur `main` (`*.bundle` ignoré : artefact de transfert jetable).
+- Dépôt initialisé, commité puis **poussé** sur `https://github.com/kiliankh/RunSync.git` (privé,
+  `main` synchronisé) ; `*.bundle` est ignoré : artefact de transfert jetable.
 - **NON VÉRIFIÉ** : aucune compilation iOS, **aucun son produit**, **aucune cadence réelle
   lue**, aucun artefact audio écouté, aucune mesure de batterie ou de latence.
 

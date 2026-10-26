@@ -77,42 +77,49 @@ vérité et la génération est déterministe (aucun conflit de merge dans le `p
 
 ## 3. Passer du PC au Mac
 
-Le dépôt local contient un commit initial (`f4138e5`, 89 fichiers) et un remote `origin`
-déjà configuré vers `https://github.com/kiliankh/RunSync.git`. Ce dépôt GitHub **n'existe pas
-encore** : tant qu'il n'est pas créé, un `git push` répond `remote: Repository not found`.
-Quatre routes, de la plus simple à la plus automatisable :
+Le dépôt distant existe et **`main` y est déjà synchronisé** :
+<https://github.com/kiliankh/RunSync.git>. Il est **privé** (il répond 404 aux requêtes
+anonymes) : le clone demande donc une authentification. Trois routes :
 
-1. **Bundle Git (recommandé : un seul fichier)** — `RunSync-phase1.bundle` (1,9 Mio, historique
-   complet vérifié) est prêt à la racine du projet. Copiez-le sur le Mac, puis :
+1. **Clone Git — le chemin normal désormais** :
+
+   ```bash
+   git clone https://github.com/kiliankh/RunSync.git RunSync
+   cd RunSync
+   git log --oneline          # historique complet, commit le plus récent en haut
+   ```
+
+   Dépôt privé oblige, GitHub ne demande plus votre mot de passe mais un **jeton d'accès
+   personnel** (*Settings -> Developer settings -> Personal access tokens*) : c'est ce jeton
+   qu'il faut coller lorsque Git réclame un mot de passe. Deux alternatives plus confortables :
+   `git@github.com:kiliankh/RunSync.git` après avoir déposé une clé SSH dans votre compte, ou le
+   clone par Xcode ci-dessous, qui gère lui-même la connexion. Ensuite, chaque aller-retour
+   PC -> Mac se réduit à `git pull`.
+2. **Clone par Xcode** — fenêtre d'accueil -> **Clone Git Repository** -> collez l'URL. **Deux
+   pièges** : `RunSync.xcodeproj` n'est **pas** versionné (il est engendré depuis `project.yml`),
+   donc Xcode clonera le dépôt sans trouver de projet à ouvrir — lancez `xcodegen generate`,
+   puis ouvrez le `.xcodeproj` obtenu. Et si vous ouvrez plutôt `Package.swift`, Xcode ne
+   construira que le noyau portable : sans cible applicative, sans Info.plist, sans permission —
+   aucune application iOS n'en sortira.
+3. **Bundle Git (repli hors ligne)** — `RunSync-phase1.bundle` à la racine du projet est une
+   **photo** du dépôt (1,9 Mio, historique complet vérifié) utile si le réseau ou
+   l'authentification pose problème :
 
    ```bash
    git clone RunSync-phase1.bundle RunSync
-   cd RunSync
-   git log --oneline          # doit afficher f4138e5
    ```
 
-   Plus tard, `git remote set-url origin <URL du dépôt>` puis `git push -u origin main` depuis
-   le Mac suffit à le rattacher à GitHub. Pour rafraîchir l'archive après de nouveaux commits :
-   `git bundle create RunSync-phase1.bundle --all` (l'archive est une photo du dépôt, elle ne
-   se met pas à jour toute seule).
-2. **Par Git, une fois le dépôt GitHub créé** — créez un dépôt **vide** (sans README, sans
-   `.gitignore`, sans licence) nommé `RunSync` sur <https://github.com/new>, puis depuis le PC :
-   `git push -u origin main`. Avantage : tous les aller-retours PC → Mac deviennent `git pull`.
+   L'archive ne se met pas à jour toute seule : après de nouveaux commits,
+   `git bundle create RunSync-phase1.bundle --all` la régénère.
 
-   Sur le Mac, Xcode sait cloner lui-même : fenêtre d'accueil → **Clone Git Repository** →
-   collez l'URL. **Mais deux pièges** : `RunSync.xcodeproj` n'est **pas** versionné (il est
-   *engendré* depuis `project.yml`), donc Xcode clonera le dépôt sans trouver de projet à
-   ouvrir — lancez `xcodegen generate`, puis ouvrez le `.xcodeproj` obtenu. Et si vous ouvrez
-   plutôt `Package.swift`, Xcode ne construira que le noyau portable : sans cible applicative,
-   sans Info.plist, sans permission — aucune application iOS n'en sortira.
-3. **Copie directe** — copiez le dossier du projet (OneDrive, clé USB, partage réseau).
-   Inutile de copier `.build/` (cache de compilation du PC, inutilisable sur Mac).
-4. **Copie ciblée** — si vous ne voulez transférer que le minimum : `RunSync/`, `project.yml`,
-   `Package.swift`, `Docs/`, `Tools/`. Le reste n'est pas nécessaire au build.
+Sans Git du tout, une copie de dossier fonctionne aussi (OneDrive, clé USB, partage réseau) :
+inutile de copier `.build/`, cache de compilation du PC inutilisable sur Mac. Le minimum strict
+est `RunSync/`, `project.yml`, `Package.swift`, `Docs/`, `Tools/`.
 
-> Le morceau de test `RunSync/Resources/TestAudio/runsync-test-clicks-168bpm.wav` (2,5 Mio) doit
-> suivre le transfert : c'est lui qui rend la synchronisation audible dès la première
-> installation. Il est versionné par exception explicite dans `.gitignore`.
+> Le morceau de test `RunSync/Resources/TestAudio/runsync-test-clicks-168bpm.wav` (2,5 Mio)
+> **fait partie du dépôt** (versionné par exception explicite dans `.gitignore`) : tout clone le
+> contient. C'est lui qui rend la synchronisation audible dès la première installation — une
+> copie manuelle ne doit donc pas l'oublier.
 
 ---
 

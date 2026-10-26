@@ -23,7 +23,8 @@ et testée sur appareil.
 | Cadence réelle réellement mesurée | **NON** — le capteur n'a jamais été interrogé |
 | Câblage app ↔ paquet (chemins de `project.yml`, imports inter-modules, fichiers orphelins) | **vérifié mécaniquement** : 62 fichiers `.swift`, 0 orphelin, 0 import manquant, noyau portable sans framework Apple |
 | Archive de transfert `RunSync-phase1.bundle` | **vérifiée** : clone réel de l'archive, puis `swift test` dans le clone → 108 tests, 0 échec |
-| Commits créés | 4 sur `main` (jusqu'à `ae42979`), arbre de travail propre. **Push impossible :** le dépôt distant `https://github.com/kiliankh/RunSync.git` n'existe pas encore (`remote: Repository not found`) |
+| Commits créés | historique sur `main`, arbre de travail propre à chaque étape |
+| Dépôt distant | **synchronisé** : `https://github.com/kiliankh/RunSync.git` (privé), `main` identique au local, 0 en avance / 0 en retard, 89 fichiers dont le morceau de test (blob vérifié par hachage identique) |
 
 Aucune ligne ci-dessous ne doit être lue comme « testé sur iPhone » : rien ne l'a été.
 
