@@ -1,4 +1,7 @@
 import SwiftUI
+// DataQuality est déclaré dans le paquet RunSyncDomain : sans cet import, la cible
+// applicative ne compile pas (Color.color(for:) prend ce type en paramètre).
+import RunSyncDomain
 
 /// Design system minimal (RS-003) : couleurs, typographies et espacements
 /// centralisés, contrastes lisibles en plein soleil et Dynamic Type respecté.
