@@ -1,0 +1,32 @@
+{
+  "id": "demo.follow",
+  "name": "Suivi 170 -> 176 -> 160 -> indisponible -> 170",
+  "durationSeconds": 60,
+  "steps": [
+    {
+      "offsetSeconds": 0,
+      "stepsPerMinute": 170,
+      "note": "allure de croisière"
+    },
+    {
+      "offsetSeconds": 10,
+      "stepsPerMinute": 176,
+      "note": "accélération soutenue"
+    },
+    {
+      "offsetSeconds": 20,
+      "stepsPerMinute": 160,
+      "note": "ralentissement"
+    },
+    {
+      "offsetSeconds": 28,
+      "stepsPerMinute": null,
+      "note": "capteur indisponible"
+    },
+    {
+      "offsetSeconds": 50,
+      "stepsPerMinute": 170,
+      "note": "reprise"
+    }
+  ]
+}

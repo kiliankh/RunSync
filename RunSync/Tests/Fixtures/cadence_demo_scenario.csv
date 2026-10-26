@@ -1,0 +1,11 @@
+# RunSync — scénario de cadence déterministe (RS-004)
+# Script imposé par la spec §16.E : 170 -> 176 -> 160 -> indisponible -> 170
+id=demo.follow
+name=Suivi 170 -> 176 -> 160 -> indisponible -> 170
+duration=60
+offsetSeconds,stepsPerMinute,note
+0,170,allure de croisière
+10,176,accélération soutenue
+20,160,ralentissement
+28,,capteur indisponible
+50,170,reprise

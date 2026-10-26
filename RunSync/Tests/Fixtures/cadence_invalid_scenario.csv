@@ -1,0 +1,9 @@
+# Scénario volontairement invalide : deux décalages identiques.
+# Il doit être refusé à la frontière d'entrée (§07), jamais accepté silencieusement.
+id=demo.invalid
+name=Décalages non croissants
+duration=30
+offsetSeconds,stepsPerMinute,note
+0,170,début
+10,176,premier changement
+10,150,décalage dupliqué

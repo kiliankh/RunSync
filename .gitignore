@@ -1,0 +1,44 @@
+# --- Xcode / SwiftPM ---
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcresult
+Packages/*/.build/
+
+# XcodeGen génère RunSync.xcodeproj **et** RunSync/Resources/Info.plist de façon
+# déterministe (project.yml est la source de vérité) : rien de tout cela n'est
+# versionné, sinon les deux versions divergeraient silencieusement.
+RunSync/Resources/Info.plist
+
+# --- macOS ---
+.DS_Store
+._*
+
+# --- Secrets / données locales ---
+# Aucune clé, aucun token, aucun fichier audio importé ne doit entrer dans le dépôt.
+.env
+*.env
+!*.env.example
+*.m4a
+*.mp3
+*.wav
+*.aiff
+*.aif
+*/secrets/
+RunSync/Resources/ImportedAudio/
+# Exception unique et volontaire : la tonalité de test est **générée par le projet**
+# (Tools/generate_test_tone.py) et dédiée au domaine public. Elle sert à vérifier la
+# synchronisation sur un iPhone réel ; aucun morceau tiers n'entre dans le dépôt.
+!RunSync/Resources/TestAudio/*.wav
+
+# --- Divers ---
+*.log

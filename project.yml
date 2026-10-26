@@ -1,0 +1,114 @@
+# RunSync — définition de projet XcodeGen (source de vérité du projet Xcode).
+#
+# Pourquoi XcodeGen plutôt qu'un .xcodeproj versionné ? Le projet est généré de
+# façon déterministe à partir de ce fichier : pas de conflits de merge dans le
+# pbxproj, revue de diff lisible, et un agent sans macOS peut tout de même
+# produire une configuration exacte et vérifiable (§15 laisse ce choix à l'agent).
+#
+# Usage (macOS) :
+#   brew install xcodegen
+#   xcodegen generate
+#   xcodebuild -project RunSync.xcodeproj -scheme RunSync \
+#     -destination 'platform=iOS Simulator,name=iPhone 16' build test
+name: RunSync
+
+options:
+  bundleIdPrefix: com.runsync
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+packages:
+  # Le noyau portable : Domain pur + simulateur déterministe, testable sans Xcode.
+  RunSyncCore:
+    path: .
+
+targets:
+  RunSync:
+    type: application
+    platform: iOS
+    sources:
+      - path: RunSync/App
+      - path: RunSync/DesignSystem
+      - path: RunSync/Features
+      # Les sous-dossiers d'Infrastructure sont listés **explicitement** :
+      # `Persistence` est compilé par le paquet SwiftPM (RunSyncPersistence) et ne
+      # doit pas l'être une seconde fois ici. Une liste explicite rend cette règle
+      # vérifiable à la lecture, sans dépendre de la sémantique d'exclusion d'un outil.
+      - path: RunSync/Infrastructure/Audio
+      - path: RunSync/Infrastructure/Motion
+      - path: RunSync/Infrastructure/Importer
+      - path: RunSync/Resources/Assets.xcassets
+      # Le morceau de test (clics 168 BPM, domaine public) est embarqué pour que la
+      # synchronisation soit vérifiable dès la première installation. Le README qui
+      # l'accompagne n'a rien à faire dans le paquet de l'application.
+      - path: RunSync/Resources/TestAudio
+        includes: ["*.wav"]
+    dependencies:
+      - package: RunSyncCore
+        product: RunSyncDomain
+      - package: RunSyncCore
+        product: RunSyncSimulation
+      - package: RunSyncCore
+        product: RunSyncPersistence
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.runsync.app
+        MARKETING_VERSION: "0.2.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+    info:
+      path: RunSync/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: RunSync
+        UILaunchScreen: {}
+        # Lecture audio en arrière-plan : nécessaire uniquement à une lecture
+        # continue réelle (RS-027). Aucun capteur de fond n'est activé.
+        UIBackgroundModes:
+          - audio
+        # Permissions demandées au moment utile (E01). Aucune permission micro :
+        # l'application ne capture jamais d'audio (FR-019).
+        # Autorisation « Mouvement et forme » : demandée au démarrage d'une course,
+        # jamais au lancement de l'application (E01). Refusée, l'application le dit et
+        # bascule sur le scénario simulé plutôt que d'inventer une cadence.
+        NSMotionUsageDescription: "RunSync utilise le suivi d'activité pour mesurer ta cadence de course."
+        NSLocationWhenInUseUsageDescription: "RunSync utilise ta position pendant la course pour l'allure et la distance."
+        ITSAppUsesNonExemptEncryption: false
+
+  RunSyncTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      # Les mêmes fichiers de test que le paquet SwiftPM : le harnais portable
+      # s'exécute sans Xcode, ces tests s'exécutent sur simulateur iPhone.
+      - path: RunSync/Tests/DomainTests
+      - path: RunSync/Tests/SimulationTests
+      - path: RunSync/Tests/StorageTests
+    dependencies:
+      - target: RunSync
+      - package: RunSyncCore
+        product: RunSyncDomain
+      - package: RunSyncCore
+        product: RunSyncSimulation
+      - package: RunSyncCore
+        product: RunSyncPersistence
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  RunSync:
+    build:
+      targets:
+        RunSync: all
+        RunSyncTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - RunSyncTests

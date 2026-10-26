@@ -1,0 +1,50 @@
+name: CI
+
+# Deux niveaux de vérification (NFR-012) :
+# 1. le noyau portable (Domain + Simulation) : `swift test`, sans projet Xcode ;
+# 2. l'application iOS complète : XcodeGen + xcodebuild sur simulateur.
+#
+# ⚠️ Ce workflow n'a PAS été exécuté lors de la phase 1 (aucun runner macOS
+# disponible dans l'environnement de développement). Voir PROJECT_STATUS.md.
+
+on:
+  push:
+    branches: [main, "feat/**", "fix/**"]
+  pull_request:
+
+jobs:
+  core-tests:
+    name: Noyau portable (SwiftPM, sans Xcode)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version de Swift
+        run: swift --version
+      - name: Compilation du noyau
+        run: swift build
+      - name: Tests Domain + Simulation
+        run: swift test
+
+  ios-build-and-test:
+    name: Application iOS (XcodeGen + xcodebuild)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer XcodeGen
+        run: brew install xcodegen
+      - name: Générer le projet Xcode
+        run: xcodegen generate
+      - name: Lister les simulateurs disponibles
+        run: xcrun simctl list devices available
+      - name: Compilation de l'application
+        run: |
+          set -o pipefail
+          xcodebuild -project RunSync.xcodeproj -scheme RunSync \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            build
+      - name: Tests sur simulateur
+        run: |
+          set -o pipefail
+          xcodebuild -project RunSync.xcodeproj -scheme RunSync \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            test

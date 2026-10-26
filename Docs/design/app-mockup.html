@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunSync — maquette des écrans (v0.3.0 : capteur et audio réels)</title>
+<style>
+  :root {
+    --accent: #fa7321;
+    --accent2: #219e99;
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --card2: #e9e9ef;
+    --text: #1c1c1e;
+    --text2: #6b6b70;
+    --danger: #d92c2c;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: #dcdce2;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+  }
+  .notice {
+    max-width: 1460px;
+    margin: 0 auto 24px;
+    padding: 16px 20px;
+    background: #fff7ed;
+    border: 1px solid #f6c79a;
+    border-left: 5px solid var(--accent);
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .notice strong { color: #9a3d00; }
+  .notice code {
+    background: #ffffff;
+    padding: 1px 5px;
+    border-radius: 5px;
+    border: 1px solid #e6d9c9;
+    font-size: 12.5px;
+  }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  .grid {
+    max-width: 1460px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  .frame-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .frame-title { font-size: 13px; font-weight: 600; color: #4a4a4f; }
+  .frame-title span { font-weight: 400; color: #6b6b70; }
+  .phone {
+    width: 318px;
+    height: 620px;
+    background: var(--bg);
+    border-radius: 34px;
+    border: 9px solid #1c1c1e;
+    box-shadow: 0 10px 24px rgba(0,0,0,.22);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .status-bar {
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--bg);
+    flex: 0 0 auto;
+  }
+  .nav {
+    flex: 0 0 auto;
+    padding: 4px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+  }
+  .nav .title { font-size: 22px; font-weight: 700; letter-spacing: -.4px; }
+  .nav .action { color: var(--accent); font-size: 14px; font-weight: 600; }
+  .content { flex: 1 1 auto; overflow: hidden; padding: 0 14px 10px; }
+  .tabbar {
+    flex: 0 0 auto;
+    height: 52px;
+    border-top: 1px solid #d3d3da;
+    background: #f8f8fb;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 9px;
+    color: #8b8b90;
+  }
+  .tabbar .item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tabbar .item.active { color: var(--accent); }
+  .tabbar .icon { font-size: 15px; }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .tile { flex: 1; }
+  .row { display: flex; gap: 8px; }
+  .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--text2);
+    margin-bottom: 2px;
+  }
+  .value { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+  .value.small { font-size: 19px; }
+  .unit { font-size: 10px; color: var(--text2); }
+  .detail { font-size: 10.5px; color: var(--text2); line-height: 1.35; margin-top: 3px; }
+  .banner {
+    border-radius: 12px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+  }
+  .banner.warn { background: #fdf1e3; color: #8a4b00; }
+  .banner.ok { background: #e3f4f3; color: #0f5f5b; }
+  .banner.err { background: #fdeaea; color: #9b1c1c; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .badge.good { background: #e3f4f3; color: #0f5f5b; }
+  .badge.degraded { background: #fdf1e3; color: #8a4b00; }
+  .badge.unavailable { background: #fdeaea; color: #9b1c1c; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 46px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .btn.secondary { background: var(--accent2); }
+  .btn.danger { background: var(--danger); }
+  .btn.ghost { background: transparent; color: var(--accent); font-size: 13px; }
+  .btn.disabled { background: #c9c9d1; color: #f2f2f7; }
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+  .field .k { color: var(--text); }
+  .field .v { color: var(--text2); font-variant-numeric: tabular-nums; }
+  .seg {
+    display: flex;
+    background: var(--card2);
+    border-radius: 9px;
+    padding: 2px;
+    margin-bottom: 8px;
+  }
+  .seg div {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 0;
+    border-radius: 7px;
+    color: var(--text2);
+  }
+  .seg div.on { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .slider {
+    height: 4px;
+    background: var(--card2);
+    border-radius: 2px;
+    margin: 12px 4px;
+    position: relative;
+  }
+  .slider .knob {
+    position: absolute;
+    top: -7px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.28);
+  }
+  .footnote { font-size: 10px; color: var(--text2); line-height: 1.35; padding: 2px 2px 8px; }
+  .list-item { padding: 9px 0; border-bottom: 1px solid #ececf1; }
+  .list-item:last-child { border-bottom: none; }
+  .list-item .t { font-size: 13.5px; }
+  .list-item .s { font-size: 10.5px; color: var(--text2); margin-top: 2px; }
+  .pills { display: flex; gap: 8px; margin-top: 5px; }
+  .pill { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--card2); color: var(--text2); }
+  .pill.ok { background: #e3f4f3; color: #0f5f5b; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text2); font-size: 12.5px; line-height: 1.5; }
+  .empty-state .big { font-size: 34px; display: block; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="notice">
+  <h1>RunSync — maquette statique des écrans</h1>
+  <strong>Ceci n'est pas l'application.</strong> C'est un rendu HTML construit à partir du code
+  SwiftUI réel (<code>RunSync/Features/**</code>) pour montrer la mise en page, les libellés et
+  les états affichés. L'application iOS n'a pas pu être compilée ni lancée dans cet environnement
+  (aucun macOS, aucun Xcode) : les couleurs, tailles de police SF et composants système
+  (Dynamic Type, VoiceOver, boutons natifs) ne sont donc pas rendus à l'identique.
+  Les chiffres affichés proviennent de la sortie réelle de <code>swift run runsync-demo</code>.
+</div>
+
+<div class="grid">
+
+  <!-- 1. Onboarding -->
+  <div class="frame-wrap">
+    <div class="frame-title">E01 — Onboarding <span>· aucune permission demandée</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="content" style="display:flex;flex-direction:column;justify-content:center;text-align:center;padding:0 22px;">
+        <div style="font-size:44px;margin-bottom:14px;">🏃</div>
+        <div style="font-size:19px;font-weight:700;margin-bottom:8px;">Bienvenue dans RunSync</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.5;">
+          La musique suit tes pas et t'accompagne vers ton rythme idéal.
+          Tout fonctionne en local : aucun compte, aucune connexion obligatoire.
+        </div>
+        <div style="display:flex;gap:6px;justify-content:center;margin:26px 0 20px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:#c7c7cd;"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:#c7c7cd;"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:#c7c7cd;"></span>
+        </div>
+        <div class="btn">Suivant →</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:6px;">Explorer le mode démo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Accueil -->
+  <div class="frame-wrap">
+    <div class="frame-title">E02 — Accueil <span>· CTA et dernier résumé</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="title">RunSync</span><span class="action">⚙</span></div>
+      <div class="content">
+        <div style="font-size:15px;font-weight:600;margin-bottom:10px;">La musique suit tes pas.</div>
+        <div class="btn">🏃 Commencer à courir</div>
+        <div class="card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Dernière configuration</div>
+          <div class="field" style="background:transparent;padding:4px 0;">
+            <span class="k" style="font-size:12.5px;">Mode</span><span class="v">Follow</span>
+          </div>
+          <div class="detail" style="margin-left:0;">Cadence mesurée</div>
+        </div>
+        <div class="card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Résumé de la session</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Durée active</span><span class="v">60 s</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Cadence moyenne</span><span class="v">170 SPM</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Temps de synchro</span><span class="v">43 s</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Allure moyenne</span><span class="v">—</span></div>
+          <div class="detail" style="margin-left:0;">GPS non actif : étape RS-012</div>
+        </div>
+        <div class="banner warn"><span>ℹ️</span><span>Aucune session enregistrée sur disque. La persistance arrive avec RS-033.</span></div>
+      </div>
+      <div class="tabbar">
+        <div class="item active"><span class="icon">⌂</span><span>Accueil</span></div>
+        <div class="item"><span class="icon">♪</span><span>Musique</span></div>
+        <div class="item"><span class="icon">🏃</span><span>Courir</span></div>
+        <div class="item"><span class="icon">▦</span><span>Statistiques</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Musique -->
+  <div class="frame-wrap">
+    <div class="frame-title">E03 — Musique <span>· import local (RS-020)</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="title">Musique</span><span class="action">⤓ Importer</span></div>
+      <div class="content">
+        <div class="label" style="margin:4px 4px 5px;">Mes morceaux importés</div>
+        <div class="card">
+          <div class="list-item" style="padding-top:2px;">
+            <div class="t">tonalite-170</div>
+            <div class="s">Artiste inconnu</div>
+            <div class="pills">
+              <span class="pill">170 BPM</span>
+              <span class="pill">BPM manuel</span>
+              <span class="pill ok">Tempo ajustable</span>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="t">mix-long</div>
+            <div class="s">Sans attestation de droits</div>
+            <div class="pills">
+              <span class="pill">BPM inconnu</span>
+              <span class="pill">BPM inconnu</span>
+              <span class="pill">Tempo non ajustable</span>
+            </div>
+          </div>
+        </div>
+        <div class="footnote">Les fichiers sont copiés dans l'espace privé de l'application.
+          La bibliothèque n'est pas encore conservée entre deux lancements (RS-033).</div>
+        <div class="label" style="margin:4px;">Morceau de test</div>
+        <div class="card">
+          <div class="list-item" style="padding-top:2px;">
+            <div class="t">Clics de test 168 BPM</div>
+            <div class="s">RunSync (domaine public) — ajouté depuis l'application</div>
+            <div class="pills">
+              <span class="pill">168 BPM</span>
+              <span class="pill">BPM manuel</span>
+              <span class="pill ok">Tempo ajustable</span>
+            </div>
+          </div>
+        </div>
+        <div class="label" style="margin:4px;">Morceaux de démonstration</div>
+        <div class="card">
+          <div class="list-item" style="padding-top:2px;">
+            <div class="t">Tonalité de test 168 BPM</div>
+            <div class="s">168 BPM — BPM manuel</div>
+          </div>
+        </div>
+        <div class="banner warn"><span>⚠️</span><span>Sans attestation, le morceau est importé mais son tempo reste non ajustable : aucune option trompeuse.</span></div>
+      </div>
+      <div class="tabbar">
+        <div class="item"><span class="icon">⌂</span><span>Accueil</span></div>
+        <div class="item active"><span class="icon">♪</span><span>Musique</span></div>
+        <div class="item"><span class="icon">🏃</span><span>Courir</span></div>
+        <div class="item"><span class="icon">▦</span><span>Statistiques</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Préparation -->
+  <div class="frame-wrap">
+    <div class="frame-title">E04 — Préparer la course <span>· mode Pace</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="title">Courir</span><span class="action">⚙</span></div>
+      <div class="content">
+        <div class="label" style="margin:2px 4px 5px;">Mode</div>
+        <div class="seg"><div>Follow</div><div class="on">Pace</div></div>
+        <div class="detail" style="margin:0 4px 10px;">La musique suit une cadence cible que tu choisis, pour te guider.</div>
+
+        <div class="label" style="margin:0 4px 5px;">Cadence cible</div>
+        <div class="seg"><div>160</div><div class="on">170</div><div>180</div></div>
+        <div class="card">
+          <div class="field" style="background:transparent;padding:2px 0;">
+            <span class="k">Cadence cible</span><span class="v">170 SPM</span>
+          </div>
+          <div class="slider"><span class="knob" style="left:56%;"></span></div>
+          <div class="field" style="background:transparent;padding:2px 0;">
+            <span class="k">Allure cible</span><span class="v">5:00 /km</span>
+          </div>
+          <div class="slider"><span class="knob" style="left:33%;"></span></div>
+        </div>
+        <div class="footnote">L'allure seule ne détermine pas la cadence (longueur de foulée) : la
+          cadence cible est déclarée explicitement.</div>
+
+        <div class="label" style="margin:0 4px 5px;">Limite d'ajustement du tempo</div>
+        <div class="card"><div class="field" style="background:transparent;padding:2px 0;">
+          <span class="k">Limite</span><span class="v">±5 % (par défaut)</span></div></div>
+
+        <div class="banner ok"><span>🎵</span><span>Lecture : fichier local. « Démarrer » est actif : le morceau sera réellement joué et son tempo ajusté de ±5 % au maximum.</span></div>
+        <div class="btn">🏃 Démarrer</div>
+      </div>
+      <div class="tabbar">
+        <div class="item"><span class="icon">⌂</span><span>Accueil</span></div>
+        <div class="item"><span class="icon">♪</span><span>Musique</span></div>
+        <div class="item active"><span class="icon">🏃</span><span>Courir</span></div>
+        <div class="item"><span class="icon">▦</span><span>Statistiques</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Session live (synchronisée) -->
+  <div class="frame-wrap">
+    <div class="frame-title">E05 — Session active <span>· t=18 s, tempo synchronisé</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="action">Fermer</span><span class="title" style="font-size:17px;">Session</span><span class="action" style="color:transparent;">·</span></div>
+      <div class="content">
+        <div class="banner ok"><span>🎵</span><span>Lecture : « Clics de test 168 BPM » — 0:18 / 0:30, ajustement de tempo actif.</span></div>
+        <div class="banner ok"><span>📱</span><span>Cadence mesurée par le capteur de l'iPhone (Core Motion).</span></div>
+        <div class="banner warn"><span>📍</span><span>Allure et distance indisponibles : le suivi GPS est l'étape RS-012.</span></div>
+
+        <div class="row">
+          <div class="card tile"><div class="label">Cadence</div>
+            <div class="value" style="color:var(--accent);">176 <span class="unit">SPM</span></div>
+            <div class="detail">Filtrée (médiane + lissage)</div></div>
+          <div class="card tile"><div class="label">Mode</div>
+            <div class="value small">Follow</div>
+            <div class="detail">Le tempo suit ta cadence réelle, dans la limite d'ajustement choisie.</div></div>
+        </div>
+        <div class="row">
+          <div class="card tile"><div class="label">BPM morceau</div>
+            <div class="value">168 <span class="unit">BPM</span></div>
+            <div class="detail">Tonalité de test 168 BPM</div></div>
+          <div class="card tile"><div class="label">Taux d'ajustement</div>
+            <div class="value">+3.6 <span class="unit">%</span></div>
+            <div class="detail">Vitesse audio appliquée (après rampe)</div></div>
+        </div>
+        <div class="row">
+          <div class="card tile"><div class="label">Allure</div>
+            <div class="value">— <span class="unit">/km</span></div>
+            <div class="detail">GPS non actif : étape RS-012</div></div>
+          <div class="card tile"><div class="label">Durée active</div>
+            <div class="value">18 <span class="unit">s</span></div>
+            <div class="detail">Session non persistée (RS-033)</div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="badge good"><span class="dot"></span>Bonne</span>
+            <span style="font-size:11px;color:var(--accent2);">Tempo ajustable</span>
+          </div>
+          <div style="font-size:12.5px;margin-top:8px;">Tempo synchronisé sur ta cadence.</div>
+          <div class="field" style="background:transparent;padding:4px 0 0;">
+            <span class="k" style="font-size:12px;">Ratio requis / appliqué</span>
+            <span class="v mono">1.0363 / 1.0363</span>
+          </div>
+          <div class="detail" style="margin-left:0;">Ratio musical 1:1</div>
+        </div>
+        <div class="btn secondary">⏸ Pause</div>
+        <div class="btn danger">⏹ Terminer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Session live (cadence perdue) -->
+  <div class="frame-wrap">
+    <div class="frame-title">E05 — Session active <span>· t=35 s, capteur indisponible</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="action">Fermer</span><span class="title" style="font-size:17px;">Session</span><span class="action" style="color:transparent;">·</span></div>
+      <div class="content">
+        <div class="banner warn"><span>🎵</span><span>Capteur sans mesure exploitable : la musique est maintenue, aucune cadence n'est inventée.</span></div>
+
+        <div class="row">
+          <div class="card tile"><div class="label">Cadence</div>
+            <div class="value" style="color:var(--text2);">— <span class="unit">SPM</span></div>
+            <div class="detail">Aucune cadence exploitable</div></div>
+          <div class="card tile"><div class="label">Mode</div>
+            <div class="value small">Follow</div>
+            <div class="detail">Le tempo suit ta cadence réelle, dans la limite d'ajustement choisie.</div></div>
+        </div>
+        <div class="row">
+          <div class="card tile"><div class="label">BPM morceau</div>
+            <div class="value">168 <span class="unit">BPM</span></div>
+            <div class="detail">Tonalité de test 168 BPM</div></div>
+          <div class="card tile"><div class="label">Taux d'ajustement</div>
+            <div class="value">−2.5 <span class="unit">%</span></div>
+            <div class="detail">Maintenu : aucune correction arbitraire</div></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="badge unavailable"><span class="dot"></span>Indisponible</span>
+            <span style="font-size:11px;color:var(--text2);">Tempo ajustable</span>
+          </div>
+          <div style="font-size:12.5px;margin-top:8px;">Cadence indisponible : tempo maintenu temporairement.</div>
+          <div class="detail" style="margin-top:8px;">Après 5 s de maintien, le tempo revient doucement au
+            tempo original en 10 s — sans jamais fabriquer de cadence.</div>
+        </div>
+        <div class="route">Reste de la session : la reprise du capteur redonne la main au suivi.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Résumé -->
+  <div class="frame-wrap">
+    <div class="frame-title">E06 — Résumé de session <span>· aucune valeur inventée</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="title" style="font-size:19px;">Session terminée</span></div>
+      <div class="content">
+        <div class="card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Résumé de la session</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Durée active</span><span class="v">60 s</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Cadence moyenne</span><span class="v">169.5 SPM</span></div>
+          <div class="detail" style="margin-left:0;">39 mesures valides retenues</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Temps de synchro</span><span class="v">72 % du temps</span></div>
+          <div class="detail" style="margin-left:0;">17 s sans tempo piloté</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Allure moyenne</span><span class="v">—</span></div>
+          <div class="detail" style="margin-left:0;">GPS non actif : étape RS-012</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Distance</span><span class="v">—</span></div>
+          <div class="detail" style="margin-left:0;">Aucune distance estimée sans GPS</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Morceaux lus</span><span class="v">Clics de test 168 BPM</span></div>
+          <div class="detail" style="margin-left:0;">Fichier local lu, tempo ajusté dans la limite choisie</div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Mesures rejetées</span><span class="v">22</span></div>
+          <div class="detail" style="margin-left:0;">Diagnostic conservé, aucune valeur inventée</div>
+        </div>
+        <div class="banner warn"><span>💾</span><span>Session non enregistrée : la persistance SwiftData arrive avec RS-033.</span></div>
+        <div class="btn secondary">⟳ Nouvelle session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Réglages -->
+  <div class="frame-wrap">
+    <div class="frame-title">E07 — Réglages <span>· disponibilités réelles</span></div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>◼ ◼ ◼</span></div>
+      <div class="nav"><span class="title" style="font-size:19px;">Réglages</span></div>
+      <div class="content">
+        <div class="label" style="margin:2px 4px 5px;">Limite d'adaptation audio</div>
+        <div class="card">
+          <div class="field" style="background:transparent;padding:2px 0;"><span class="k">Limite</span><span class="v">±5 % (par défaut)</span></div>
+        </div>
+        <div class="label" style="margin:4px;">Cadence</div>
+        <div class="card">
+          <div class="field" style="background:transparent;padding:2px 0;"><span class="k">Source</span><span class="v">Capteur de l'iPhone (Core Motion)</span></div>
+        </div>
+        <div class="footnote">Capteur de cadence disponible. L'autorisation « Mouvement et forme » est
+          demandée au démarrage d'une course, jamais au lancement. Dans le simulateur, l'absence de
+          capteur est annoncée et le scénario simulé prend le relais.</div>
+        <div class="label" style="margin:4px;">Confidentialité</div>
+        <div class="card">
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Export CSV</span><span class="v">Indisponible</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Effacement local</span><span class="v">Partiel</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Permissions</span><span class="v">Mouvement et forme</span></div>
+          <div class="detail" style="margin-left:0;">Demandée au démarrage d'une course, jamais au lancement. Aucun accès micro, aucune donnée de santé, aucun analytics tiers.</div>
+        </div>
+        <div class="label" style="margin:4px;">Sources musicales et conformité</div>
+        <div class="card">
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Fichiers locaux importés</span><span class="v" style="color:var(--accent2);">Conformité confirmée</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Apple Music (MusicKit)</span><span class="v">À vérifier</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">Spotify</span><span class="v">À vérifier</span></div>
+          <div class="field" style="background:transparent;padding:3px 0;"><span class="k" style="font-size:12.5px;">YouTube / YouTube Music</span><span class="v">Non autorisé</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
