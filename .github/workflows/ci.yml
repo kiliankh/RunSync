@@ -4,8 +4,15 @@ name: CI
 # 1. le noyau portable (Domain + Simulation) : `swift test`, sans projet Xcode ;
 # 2. l'application iOS complète : XcodeGen + xcodebuild sur simulateur.
 #
-# ⚠️ Ce workflow n'a PAS été exécuté lors de la phase 1 (aucun runner macOS
-# disponible dans l'environnement de développement). Voir PROJECT_STATUS.md.
+# ⚠️ Ce workflow n'a PAS encore été exécuté (aucun runner macOS disponible dans
+# l'environnement de développement). Depuis le 28/10/2026, c'est le seul moyen de
+# compiler l'application iOS sans un Mac équipé : voir Docs/RUN_ON_IPHONE.md §5
+# et §10. Le premier passage dira si l'application compile, pour la première fois.
+#
+# Le job iOS ne nomme plus aucun simulateur en dur : un nom absent de l'Xcode
+# installé fait échouer xcodebuild sur « Unable to find a destination ». Il
+# découvre le premier iPhone disponible et échoue avec un message explicite s'il
+# n'y en a aucun.
 
 on:
   push:
@@ -30,21 +37,49 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Outils et plateformes disponibles
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
       - name: Installer XcodeGen
         run: brew install xcodegen
       - name: Générer le projet Xcode
         run: xcodegen generate
-      - name: Lister les simulateurs disponibles
-        run: xcrun simctl list devices available
-      - name: Compilation de l'application
+      - name: Destinations éligibles (diagnostic)
+        # Volontairement non bloquant : si la plateforme iOS manque sur le runner,
+        # c'est la sortie de cette étape qui le dit noir sur blanc.
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild -project RunSync.xcodeproj -scheme RunSync -showdestinations
+      - name: Compilation pour appareil (sans signature)
+        # Le vrai signal de cette étape : l'application compile-t-elle pour iOS ?
+        # Aucune signature n'est nécessaire pour le savoir.
         run: |
           set -o pipefail
           xcodebuild -project RunSync.xcodeproj -scheme RunSync \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
             build
+      - name: Choisir un simulateur réellement installé
+        id: simulator
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available \
+            | grep -E '^[[:space:]]+iPhone' \
+            | head -1 \
+            | grep -oE '[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}' \
+            || true)
+          if [ -z "$UDID" ]; then
+            echo "::error::Aucun simulateur iPhone disponible sur ce runner."
+            exit 1
+          fi
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Simulateur retenu : $UDID"
       - name: Tests sur simulateur
         run: |
           set -o pipefail
           xcodebuild -project RunSync.xcodeproj -scheme RunSync \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
             test

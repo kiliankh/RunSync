@@ -196,21 +196,57 @@ autre chemin : `rm -rf .build` puis relancez.)*
 xcodegen generate                          # obligatoire dans tous les cas
 ```
 
-### Le simulateur est facultatif
+### La plateforme iOS doit être installée — même pour l'iPhone
 
-Un runtime de simulateur ne sert qu'à faire tourner l'application **sur le Mac** : itération
-rapide et *Previews* SwiftUI. Compiler pour un iPhone branché produit du code pour l'appareil
-(`arm64`) et **ne demande aucun runtime de simulateur**. Si la place manque sur le Mac,
-**sautez directement au §6** : c'est de toute façon le seul chemin qui exerce réellement le
-capteur et la musique. Ce que vous perdez : les *Previews*, et le fait de pouvoir tester sans
-câble.
-
-Si vous gardez le simulateur, la compilation s'y fait ainsi :
+**Correction d'une affirmation de la version précédente de ce document.** Il y était écrit
+qu'une compilation pour l'appareil ne demande aucun runtime de simulateur. C'est faux sur
+Xcode 15, et l'essai réel du 28/10/2026 (macOS 13.7.8, Xcode 15.2) le montre :
 
 ```bash
-xcrun simctl list devices available        # choisir un simulateur réellement installé
+xcodebuild -showsdks | grep -i ios
+#   iOS 17.2                -sdk iphoneos17.2          ← le SDK, lui, est bien là
+#   Simulator - iOS 17.2    -sdk iphonesimulator17.2
+
+xcodebuild -project RunSync.xcodeproj -scheme RunSync \
+  -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
+#   xcodebuild: error: Unable to find a destination matching the provided destination specifier:
+#       { generic:1, platform:iOS }
+#   … error:iOS 17.2 is not installed. To use with Xcode, first download and install the platform
+```
+
+Le **SDK** et la **plateforme** sont deux choses distinctes. Sur Xcode 15, la plateforme iOS est
+un composant téléchargeable unique qui fournit à la fois la compilation et le simulateur : il
+n'existe pas de variante « appareil seulement ». Tant qu'elle manque, **aucun** build n'est
+possible — ni pour le simulateur, ni pour l'iPhone.
+
+Contrôle en 30 secondes, avant de télécharger quoi que ce soit :
+
+```bash
+xcrun simctl list runtimes        # vide, ou sans « iOS 17 » → plateforme absente
+du -sh /Applications/Xcode.app    # un Xcode complet pèse une douzaine de gigaoctets
+```
+
+Installation (environ 7 Go, avec de la marge : le téléchargement et la décompression réclament de
+l'espace temporaire en plus, et un échec en cours de route laisse un composant à moitié installé) :
+
+```bash
+xcodebuild -downloadPlatform iOS
+```
+
+Dans l'interface : Xcode → *Settings…* → **Components** (nommé **Platforms** dans les versions
+plus récentes) → composant iOS 17.2 → **GET**. `xcrun simctl list runtimes` doit ensuite le lister.
+
+Une fois la plateforme installée, les deux chemins fonctionnent :
+
+```bash
+# sur simulateur
+xcrun simctl list devices available        # recopier un nom réellement listé (p. ex. « iPhone 15 »)
 xcodebuild -project RunSync.xcodeproj -scheme RunSync \
   -destination 'platform=iOS Simulator,name=iPhone 15' build
+
+# sur l'iPhone
+xcodebuild -project RunSync.xcodeproj -scheme RunSync \
+  -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
 > **Le nom du simulateur dépend de l'Xcode installé.** « iPhone 16 » suppose Xcode 16 ; avec
@@ -219,6 +255,35 @@ xcodebuild -project RunSync.xcodeproj -scheme RunSync \
 > l'affiche — un nom inventé fait échouer `xcodebuild` sur
 > `Unable to find a destination matching the provided destination specifier`. Dans Xcode, la
 > question ne se pose pas : le simulateur se choisit dans le menu déroulant à côté du schéma.
+
+### Manquer de place : faire l'inventaire avant d'effacer
+
+Sur le Mac de test, `df -h /` annonçait **3,5 Go libres** pour un disque de 466 Go : l'espace est
+consommé ailleurs que par Xcode. Ces commandes ne font que **mesurer** :
+
+```bash
+du -sh ~/* 2>/dev/null | sort -h | tail -15
+du -sh ~/Library/Developer/Xcode/iOS\ DeviceSupport \
+       ~/Library/Developer/Xcode/DerivedData \
+       ~/Library/Developer/Xcode/Archives 2>/dev/null
+du -sh ~/Library/Caches ~/Downloads \
+       ~/Library/"Application Support"/MobileSync \
+       ~/Library/Containers/com.docker.docker 2>/dev/null
+```
+
+Gains sûrs, sans rien perdre :
+
+- `~/Library/Developer/Xcode/iOS\ DeviceSupport` — **5,0 Go** sur le Mac de test. Ce sont les
+  symboles de débogage, un dossier par version d'iOS déjà branchée ; Xcode les **régénère** à la
+  reconnexion de l'iPhone. C'est le gain immédiat le plus sûr.
+- `~/Library/Developer/Xcode/DerivedData` — sortie de compilation, recréée au build suivant.
+- `~/Library/Developer/Xcode/Archives` — uniquement les `.xcarchive` de versions que vous gardez.
+
+Inutile de vider `~/Library/Developer/CoreSimulator` en espérant y gagner de la place : s'il est
+petit, c'est précisément que la plateforme manque.
+
+**Si la place manque malgré tout**, il reste un chemin qui ne télécharge rien : la CI (§10)
+compile l'application sur un runner macOS de GitHub, sans consommer votre disque.
 
 **C'est le vrai risque de cette étape.** Aucune ligne de `RunSync/App/`, `RunSync/Features/`,
 `RunSync/DesignSystem/`, `RunSync/Infrastructure/Audio/` et `RunSync/Infrastructure/Motion/`
@@ -237,10 +302,11 @@ deux cas — le morceau de test s'y joue et l'accélération des clics s'y enten
 
 ## 6. Étape 3 — installer sur l'iPhone
 
-> **Aucun simulateur n'est requis.** Si Xcode propose de télécharger un runtime de simulateur,
-> refusez : c'est plusieurs gigaoctets, et l'installation sur l'appareil n'en a pas besoin.
-> Une compilation pour l'appareil n'ajoute que quelques centaines de mégaoctets à `DerivedData`,
-> nettoyables par *Product → Clean Build Folder* (⇧⌘K).
+> **Rien à télécharger si votre Xcode est complet.** En revanche, si `xcodebuild` répond
+> `iOS 17.2 is not installed. To use with Xcode, first download and install the platform`
+> (cas rencontré le 28/10/2026), la plateforme manque et doit être installée **avant tout
+> build, appareil compris** : voir §5. Un build pour l'appareil n'ajoute ensuite que quelques
+> centaines de mégaoctets à `DerivedData`, nettoyables par *Product → Clean Build Folder* (⇧⌘K).
 
 1. **Compte** : Xcode → *Settings…* → *Accounts* → ajoutez votre Apple ID.
 2. **Signature** : cible **RunSync** → *Signing & Capabilities* : cochez *Automatically manage

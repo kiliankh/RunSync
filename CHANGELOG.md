@@ -3,6 +3,35 @@
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement sémantique une fois l'application distribuée.
 
+## [Non publié] — 2026-10-28 — Compiler sans Mac équipé (CI et documentation)
+
+### Corrigé
+
+- **Workflow CI iOS : plus aucun simulateur nommé en dur.** Le job épinglait
+  `-destination 'platform=iOS Simulator,name=iPhone 16'` ; sur un runner dont l'Xcode par défaut
+  ne connaît pas ce modèle, `xcodebuild` s'arrêtait sur `Unable to find a destination` **avant
+  même de compiler**. Il choisit désormais le premier iPhone réellement disponible
+  (`xcrun simctl list devices available` → UDID) et s'arrête avec un message explicite s'il n'y
+  en a aucun. Ajouts : compilation `-destination 'generic/platform=iOS'`
+  `CODE_SIGNING_ALLOWED=NO` (le vrai signal — l'application compile-t-elle pour l'appareil ?) et
+  `xcodebuild -showdestinations` non bloquant, qui imprime les destinations éligibles et la
+  raison de leur inéligibilité.
+- **`Docs/RUN_ON_IPHONE.md` : affirmation fausse corrigée.** Il y était écrit qu'une compilation
+  pour l'iPhone ne demande aucun runtime de simulateur. Essai réel du 28/10/2026 (macOS 13.7.8,
+  Xcode 15.2) : `xcodebuild -showsdks` liste bien `iphoneos17.2`, mais
+  `-destination 'generic/platform=iOS'` échoue sur `iOS 17.2 is not installed. To use with Xcode,
+  first download and install the platform`. Le **SDK** et la **plateforme** sont deux composants
+  distincts ; sur Xcode 15, la plateforme porte à la fois la compilation et le simulateur, sans
+  variante « appareil seulement ».
+
+### Modifié
+
+- `Docs/RUN_ON_IPHONE.md` §5 : contrôle de la plateforme (`xcrun simctl list runtimes`,
+  `du -sh /Applications/Xcode.app`), installation (`xcodebuild -downloadPlatform iOS`, ~7 Go) et
+  section « Manquer de place » — mesure non destructive (`du -sh ~/*`, caches Xcode) et gains
+  sûrs, dont `~/Library/Developer/Xcode/iOS DeviceSupport` (**5,0 Go** sur le Mac de test,
+  régénéré par Xcode à la reconnexion de l'iPhone).
+
 ## [0.3.0] — 2026-10-26 — Capteur et musique réels (RS-010, RS-021)
 
 ### Ajouté
